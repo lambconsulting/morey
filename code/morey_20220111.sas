@@ -2,13 +2,13 @@
 libname eff "U:\Consulting\KEL\Leach\Morey\data"; 
 %include "U:\Consulting\KEL\Fox\Weisse\Cote\code\ROC_Optimal_Cutoff_031816.sas";
 
-data eff (drop=itapx); set eff.hemo_effusion_20220111 (rename=iTAPSE=itapx); 
+data eff /* (drop=itapx) */; set eff.hemo_effusion_20220114 /* (rename=iTAPSE=itapx) */; 
 c_nc = cardiac_versus_noncardiacdx;
 if cardiac_versus_noncardiacdx ne . then do;
 c_nc2 = (cardiac_versus_noncardiacdx in (1 2));
 end;
 
-iTAPSE = input(itapx,5.0);
+/*iTAPSE = input(itapx,5.0);*/
 run;
 
 /*proc freq;*/
@@ -55,7 +55,7 @@ rename %scan(&vars.,&i)_p75 = p75;
 dv = "%scan(&vars.,&i)"; iv = "&iv."; research_q = "&research_q."; model = "&model."; 
 run;
 data rawmean;
-set rawmean m_%scan(&vars.,&i) (drop=&iv.);
+set rawmean m_%scan(&vars.,&i) (rename=&iv.=iv_level);
 run;
 proc datasets lib=work nodetails nolist;
 delete mean_%scan(&vars.,&i);
@@ -230,44 +230,47 @@ data ctf_all; set _null_; data f_p; set _null_; data chi_p; set _null_; run;
 		optcrit = youden , pevent = &prob.,
 		optsymbolstyle = size=0, optbyx = panelall, x = &dv.)
 
-		data rocme;
+		data rocme (drop =  &dv.);
 	retain _id &dv. _CORRECT_ _sens_ _spec_ _FALPOS_ _FALNEG_ _opty_;
 	set _rocplot (keep=_id &dv. _CORRECT_ _sens_ _spec_    _sensit_ _FALPOS_ _FALNEG_ _opty_ __spec_ _POS_ _NEG_);
-
-	if (_sens_ in (0 1)) or (_spec_ in (0 1)) or (_opty_ = "Y") then
+dv = "&dv.";
+iv = "&iv.";
+/*	if (_sens_ in (0 1)) or (_spec_ in (0 1)) or (_opty_ = "Y") then*/
+		if (_opty_ = "Y") then
 		output;
 	run;
-
-	data rocme9_10;
-	retain _id &iv. _CORRECT_ _sens_ _spec_ _FALPOS_ _FALNEG_ _opty_;
-	set _rocplot (keep=_id &dv. _CORRECT_ _sens_ _spec_    _sensit_ _FALPOS_ _FALNEG_ _opty_ __spec_ _POS_ _NEG_);
-
-	if (0.89 le _sens_ le 0.91) or (0.09 le _spec_ le 0.11) or (_opty_ = "Y") then
-		output;
-		run;
-
-		data rocme90;
-	retain _id &dv. _CORRECT_ _sens_ _spec_ _FALPOS_ _FALNEG_ _opty_;
-	set _rocplot (keep=_id &dv. _CORRECT_ _sens_ _spec_    _sensit_ _FALPOS_ _FALNEG_ _opty_ __spec_ _POS_ _NEG_);
-
-	if (0.89 le _sens_ le 0.91) or (0.89 le _spec_ le 0.91) or (_opty_ = "Y") then
-		output;
-		run;
-
+/**/
+/*	data rocme9_10;*/
+/*	retain _id &iv. _CORRECT_ _sens_ _spec_ _FALPOS_ _FALNEG_ _opty_;*/
+/*	set _rocplot (keep=_id &dv. _CORRECT_ _sens_ _spec_    _sensit_ _FALPOS_ _FALNEG_ _opty_ __spec_ _POS_ _NEG_);*/
+/**/
+/*	if (0.89 le _sens_ le 0.91) or (0.09 le _spec_ le 0.11) or (_opty_ = "Y") then*/
+/*		output;*/
+/*		run;*/
+/**/
+/*		data rocme90;*/
+/*	retain _id &dv. _CORRECT_ _sens_ _spec_ _FALPOS_ _FALNEG_ _opty_;*/
+/*	set _rocplot (keep=_id &dv. _CORRECT_ _sens_ _spec_    _sensit_ _FALPOS_ _FALNEG_ _opty_ __spec_ _POS_ _NEG_);*/
+/**/
+/*	if (0.89 le _sens_ le 0.91) or (0.89 le _spec_ le 0.91) or (_opty_ = "Y") then*/
+/*		output;*/
+/*		run;*/
+data rocme_all; set rocme_all rocme; run;
 
 %mend;
 
 
-%macro logme;
-%let vars = HCT WBC PLT BUN Creat Tot_pro Alb Glob ALT ALKP GGT Tbili iTAPSE FAC RAD NT_proBNP cTnI;
-%let word_cnt=%sysfunc(countw(&vars));
-%do i = 1 %to &word_cnt.;
-/*%do i = 1 %to 1;*/
-%logit(eff,c_nc2,%scan(&vars.,&i),1);
-%end;
-%mend;
-%logme;
-
+/*%macro logme;*/
+/*%let vars = HCT WBC PLT BUN Creat Tot_pro Alb Glob ALT ALKP GGT Tbili iTAPSE FAC RAD NT_proBNP cTnI;*/
+/*%let word_cnt=%sysfunc(countw(&vars));*/
+/*%do i = 1 %to &word_cnt.;*/
+/*/*%do i = 1 %to 1;*/*/
+/*%logit(eff,c_nc2,%scan(&vars.,&i),1);*/
+/*%end;*/
+/*%mend;*/
+/*%logme;*/
+;
+data rocme_all; set _null_; run;
 
 %logit(eff,c_nc2,HCT,1);
 %logit(eff,c_nc2,WBC,1);
@@ -324,7 +327,7 @@ data ctf_all; set _null_; data wtk_k_all; set _null_; run;
 %kappame(Pl_eff_RV1,Pl_eff_RV2);
     
 
-%kappame(Abd_eff_RV1,Abd_eff_RV2); * All 1/1;
+/*%kappame(Abd_eff_RV1,Abd_eff_RV2); * All 1/1;*/
 proc freq data=eff;
 tables Abd_eff_RV1*Abd_eff_RV2 / agree chisq; test wtkap;
 /*ods output CrossTabFreqs=ctf SymmetryTest=st kappa=k wtkappa=wtk;*/
