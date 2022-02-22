@@ -11,6 +11,11 @@ end;
 /*iTAPSE = input(itapx,5.0);*/
 run;
 
+
+data eff23; set eff;
+where c_nc ne 1;
+run;
+
 /*proc freq;*/
 /*tables cardiac_versus_noncardiacdx*(c_nc c_nc2);*/
 /*run;*/
@@ -270,6 +275,10 @@ data rocme_all; set rocme_all rocme; run;
 /*%mend;*/
 /*%logme;*/
 ;
+
+
+
+
 data rocme_all; set _null_; run;
 
 %logit(eff,c_nc2,HCT,1);
@@ -289,6 +298,26 @@ data rocme_all; set _null_; run;
 %logit(eff,c_nc2,NT_proBNP,1);
 %logit(eff,c_nc2,cTnI,1);
 
+/* Reduced Population omitting c_nc = 1 with new data set eff23*/
+
+data rocme_all; set _null_; run;
+
+%logit(eff23,c_nc2,HCT,1);
+%logit(eff23,c_nc2,WBC,1);
+%logit(eff23,c_nc2,PLT,1);
+%logit(eff23,c_nc2,BUN,1);
+%logit(eff23,c_nc2,Tot_pro,1);
+%logit(eff23,c_nc2,Alb,1);
+%logit(eff23,c_nc2,Glob,1);
+%logit(eff23,c_nc2,ALT,1);
+%logit(eff23,c_nc2,ALKP,1);
+%logit(eff23,c_nc2,GGT,1);
+%logit(eff23,c_nc2,Tbili,1);
+%logit(eff23,c_nc2,iTAPSE,1);
+%logit(eff23,c_nc2,FAC,1);
+%logit(eff23,c_nc2,RAD,1);
+%logit(eff23,c_nc2,NT_proBNP,1);
+%logit(eff23,c_nc2,cTnI,1);
 
 
 
