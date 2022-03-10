@@ -2,7 +2,11 @@
 libname eff "U:\Consulting\KEL\Leach\Morey\data"; 
 %include "U:\Consulting\KEL\Fox\Weisse\Cote\code\ROC_Optimal_Cutoff_031816.sas";
 
-data eff /* (drop=itapx) */; set eff.hemo_effusion_20220114 /* (rename=iTAPSE=itapx) */; 
+/* Add age and gender per Nekesa phone call 20220307 from Excel morey_20220308_in.xlsx */
+/*data eff.morey_age_sig_20220308 (keep= case case_no age signalment); set MOREY_20220308_IN; run;*/
+
+
+data hemo_effusion_20220114 (drop=age) /* (drop=itapx) */; set eff.hemo_effusion_20220114 /* (rename=iTAPSE=itapx) */; 
 c_nc = cardiac_versus_noncardiacdx;
 if cardiac_versus_noncardiacdx ne . then do;
 c_nc2 = (cardiac_versus_noncardiacdx in (1 2));
@@ -12,6 +16,19 @@ end;
 run;
 
 
+
+data eff;
+merge hemo_effusion_20220114 eff.morey_age_sig_20220308;
+by case case_no;
+if signalment in ( 1, 2) then gender = "F";
+else if signalment in ( 3, 4) then gender = "M";
+else gender = "X";
+run;
+
+proc freq data=eff;
+tables signalment*gender / missing; 
+run;
+
 data eff23; set eff;
 where c_nc ne 1;
 run;
@@ -20,10 +37,12 @@ run;
 /*tables cardiac_versus_noncardiacdx*(c_nc c_nc2);*/
 /*run;*/
 
-%let contvars = HCT WBC PLT BUN Creat Tot_pro Alb Glob ALT ALKP GGT Tbili iTAPSE FAC RAD NT_proBNP cTnI;
-%let catvars = Heart_murmur Jug_dist Jug_puls Abd_dist Fluid_wave 
+%let contvars = HCT WBC PLT BUN Creat Tot_pro Alb Glob ALT ALKP GGT Tbili iTAPSE FAC RAD NT_proBNP cTnI
+age ;
+%let catvars = Heart_murmur Jug_dist Jug_puls Abd_dist Fluid_wave
 Hep_venous_dist_RV1 Abd_eff_RV1 CaudalVC_dist_RV1 Peri_eff_RV1 GBW_oedema_RV1 Pl_eff_RV1 
-Hep_venous_dist_RV2 Abd_eff_RV2 CaudalVC_dist_RV2 Peri_eff_RV2 GBW_oedema_RV2 Pl_eff_RV2;
+Hep_venous_dist_RV2 Abd_eff_RV2 CaudalVC_dist_RV2 Peri_eff_RV2 GBW_oedema_RV2 Pl_eff_RV2
+gender ;
 /*Hep_venous_dist Abd_eff CaudalVC_dist Peri_eff GBW_oedema Pl_eff;*/
 /*NT_proBNP and cTnI*/
 
@@ -297,6 +316,7 @@ data rocme_all; set _null_; run;
 %logit(eff,c_nc2,RAD,1);
 %logit(eff,c_nc2,NT_proBNP,1);
 %logit(eff,c_nc2,cTnI,1);
+%logit(eff,c_nc2,age,1);
 
 /* Reduced Population omitting c_nc = 1 with new data set eff23*/
 
@@ -318,6 +338,7 @@ data rocme_all; set _null_; run;
 %logit(eff23,c_nc2,RAD,1);
 %logit(eff23,c_nc2,NT_proBNP,1);
 %logit(eff23,c_nc2,cTnI,1);
+%logit(eff23,c_nc2,age,1);
 
 
 
